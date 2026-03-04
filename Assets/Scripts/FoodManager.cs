@@ -1,50 +1,93 @@
-using UnityEngine;
+using System.Collections;
 using System.Collections.Generic;
+using TMPro;
+using UnityEngine;
 
 public class FoodManager : MonoBehaviour
 {
     private Dictionary<string, Transform> foodTypeParents = new Dictionary<string, Transform>();
 
-    // Dicionário para guardar o último Transform de conexão de cada categoria
-    // Ex: "Hamburger" -> Transform do topo da última carne colocada
     private Dictionary<string, Transform> lastSocketPoints = new Dictionary<string, Transform>();
 
+    [SerializeField] GameObject[] buttons;
+
+    [SerializeField] TextMeshProUGUI missingFoodLayerWarningText;
+
+    string activeCategory = "";
+
+
+    private void Start()
+    {
+        missingFoodLayerWarningText.text = 
+            "You should add one kind of ingredient at least to proceed";
+    }
     public void AddIngredient(Food foodData)
     {
+        GameManager.gameManager.ChangeState(GameManager.GameState.choosingIngredients);
+
         if (foodData == null) return;
 
         string categoryName = foodData.GetType().Name;
+
+        if (string.IsNullOrEmpty(activeCategory)) 
+        {
+            activeCategory = categoryName;
+            GameManager.gameManager.ChangeState(GameManager.GameState.choosingIngredients);
+
+        }
+        else if (activeCategory != categoryName)
+        {
+            Debug.LogWarning($"Você precisa finalizar o {activeCategory} antes de começar {categoryName}!");
+            return;
+        }
+
+        
+
+
         Transform currentParent = GetOrCreateCategoryParent(categoryName);
 
-        // 1. Decidir onde spawnar
         Vector3 targetPos;
+
         Quaternion targetRot;
 
         if (lastSocketPoints.ContainsKey(categoryName) && lastSocketPoints[categoryName] != null)
         {
             targetPos = lastSocketPoints[categoryName].position;
+
             targetRot = lastSocketPoints[categoryName].rotation;
         }
         else
         {
             targetPos = foodData.foodPrefabSpawnPos.position;
+
             targetRot = foodData.foodPrefabSpawnPos.rotation;
         }
 
-        // 2. Instanciar
+        
         GameObject newIngredient = Instantiate(foodData.foodPrefab, targetPos, targetRot);
-
-        // IMPORTANTE: Colocar no Parent antes de atualizar o socket
+        
         newIngredient.transform.SetParent(currentParent);
 
-        // 3. Atualizar o Socket para o PRÓXIMO item
         IngredientSocket info = newIngredient.GetComponent<IngredientSocket>();
 
         if (info != null && info.socketTransform != null)
         {
-            // Aqui está o pulo do gato: forçamos a atualização da matriz de transformação
-            // para garantir que a posição do socket seja lida corretamente no próximo frame
+            
             lastSocketPoints[categoryName] = info.socketTransform;
+        }
+    }
+    // Método para ser chamado pelo botão "Finalizar Item" (ex: "Fechar Hambúrguer")
+    public void FinishCurrentCategory()
+    {
+        if (string.IsNullOrEmpty(activeCategory)) return;
+
+        Debug.Log($"{activeCategory} finalizado. Agora você pode escolher outra categoria.");
+        activeCategory = ""; // Libera para a próxima categoria
+
+        // Se quiser que todos os botões voltem a aparecer após finalizar
+        foreach (GameObject button in buttons)
+        {
+            button.SetActive(true);
         }
     }
 
@@ -53,7 +96,9 @@ public class FoodManager : MonoBehaviour
         if (!foodTypeParents.ContainsKey(categoryName))
         {
             GameObject newGroup = new GameObject(categoryName);
+
             newGroup.transform.SetParent(this.transform);
+
             foodTypeParents.Add(categoryName, newGroup.transform);
         }
         return foodTypeParents[categoryName];
@@ -66,6 +111,35 @@ public class FoodManager : MonoBehaviour
             if (group != null) Destroy(group.gameObject);
         }
         foodTypeParents.Clear();
-        lastSocketPoints.Clear(); // Limpa os pontos de conexão
+
+        lastSocketPoints.Clear(); 
+    }
+    public IEnumerator VerifyLayerFoodExists() 
+    {
+        bool missingFoodLayer = false;
+        if (GameObject.FindGameObjectsWithTag("Food_Layer2").Length < 1)
+        {
+            missingFoodLayer = true;
+            missingFoodLayerWarningText.gameObject.SetActive(true);
+            yield return new WaitForSeconds(3f);
+            missingFoodLayerWarningText.gameObject.SetActive(false);
+            
+            Debug.Log("No food objects found in the scene.");
+            
+        }
+        if (missingFoodLayer)
+            foreach (GameObject button in buttons)
+            {
+                button.SetActive(true);
+            }
+        else
+            foreach (GameObject button in buttons)
+            {
+                button.SetActive(false);
+            }  
+    }
+    public void OnButtonClick() 
+    {
+        StartCoroutine(VerifyLayerFoodExists());
     }
 }
