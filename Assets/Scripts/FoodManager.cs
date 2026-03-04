@@ -23,7 +23,6 @@ public class FoodManager : MonoBehaviour
     }
     public void AddIngredient(Food foodData)
     {
-        GameManager.gameManager.ChangeState(GameManager.GameState.choosingIngredients);
 
         if (foodData == null) return;
 
@@ -40,9 +39,6 @@ public class FoodManager : MonoBehaviour
             Debug.LogWarning($"Você precisa finalizar o {activeCategory} antes de começar {categoryName}!");
             return;
         }
-
-        
-
 
         Transform currentParent = GetOrCreateCategoryParent(categoryName);
 
@@ -112,7 +108,11 @@ public class FoodManager : MonoBehaviour
         }
         foodTypeParents.Clear();
 
-        lastSocketPoints.Clear(); 
+        lastSocketPoints.Clear();
+
+        activeCategory = "";
+
+        GameManager.gameManager.ChangeState(GameManager.GameState.resetOrdering);
     }
     public IEnumerator VerifyLayerFoodExists() 
     {
