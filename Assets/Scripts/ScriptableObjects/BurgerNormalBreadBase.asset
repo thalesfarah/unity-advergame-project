@@ -17,4 +17,4 @@ MonoBehaviour:
   price: 0
   foodPrefab: {fileID: 2113628804261800721, guid: b79f913db68f40a42bad91e6b406e796, type: 3}
   myLayer: 1
-  maxLayersInCategory: 4
+  maxLayersInCategory: 3

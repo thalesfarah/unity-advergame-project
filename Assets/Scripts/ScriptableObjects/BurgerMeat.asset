@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::FoodData
   ingredientName: Meat
   categoryName: Hamburger
-  price: 0
+  price: 5
   foodPrefab: {fileID: 2113628804261800721, guid: b2239b9121cdff84d81b43d046ce4a31, type: 3}
   myLayer: 2
-  maxLayersInCategory: 4
+  maxLayersInCategory: 3

@@ -4,7 +4,7 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager gameManager;
 
-    public enum GameState
+    public enum GameState 
     {
         startedOrdering,
         choosingIngredients,

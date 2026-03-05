@@ -12,8 +12,10 @@ public class FoodManager : MonoBehaviour
     [Header("UI References")]
     [SerializeField] GameObject[] layerButtonGroups;
     [SerializeField] TextMeshProUGUI missingFoodLayerWarningText;
+    [SerializeField] TextMeshProUGUI totalPriceText;
     [SerializeField] Button nextStepButton;
-    [SerializeField] Button backButton; // Opcional: arraste o botão de voltar aqui
+    [SerializeField] Button backButton;
+    [SerializeField] Button removeLastItemButton; // NOVA REFERÊNCIA ADICIONADA
 
     [Header("Setup")]
     [SerializeField] Transform defaultSpawnPoint;
@@ -21,29 +23,42 @@ public class FoodManager : MonoBehaviour
     private string activeCategory = "";
     private int currentLayerTarget = 0;
     private int maxLayersActiveCategory = 0;
+    private float totalPrice = 0f;
 
     private void Start()
     {
         currentLayerTarget = 0;
+        totalPrice = 0f;
+        UpdatePriceUI();
+
+        // Esconde os botões de ação no menu inicial
         if (nextStepButton != null) nextStepButton.gameObject.SetActive(false);
         if (backButton != null) backButton.gameObject.SetActive(false);
+        if (removeLastItemButton != null) removeLastItemButton.gameObject.SetActive(false);
+
         UpdateUIButtons();
     }
 
     public void SelectCategory(FoodData categoryData)
     {
         if (categoryData == null) return;
+
+        totalPrice += categoryData.price;
+        UpdatePriceUI();
+
         activeCategory = categoryData.categoryName;
         maxLayersActiveCategory = categoryData.maxLayersInCategory;
         currentLayerTarget = 1;
         UpdateUIButtons();
 
+        // Ativa os botões de controle ao entrar em uma categoria
         if (nextStepButton != null)
         {
             nextStepButton.gameObject.SetActive(true);
             nextStepButton.interactable = false;
         }
         if (backButton != null) backButton.gameObject.SetActive(true);
+        if (removeLastItemButton != null) removeLastItemButton.gameObject.SetActive(true);
 
         GameManager.gameManager.ChangeState(GameManager.GameState.choosingIngredients);
     }
@@ -52,6 +67,9 @@ public class FoodManager : MonoBehaviour
     {
         if (foodData == null || foodData.myLayer != currentLayerTarget) return;
         if (foodData.categoryName != activeCategory) return;
+
+        totalPrice += foodData.price;
+        UpdatePriceUI();
 
         Transform currentParent = GetOrCreateCategoryParent(activeCategory);
         Vector3 targetPos = (lastSocketPoints.ContainsKey(activeCategory) && lastSocketPoints[activeCategory] != null)
@@ -68,22 +86,53 @@ public class FoodManager : MonoBehaviour
         if (info != null)
         {
             info.myLayer = foodData.myLayer;
+            info.ingredientPrice = foodData.price;
             if (info.socketTransform != null) lastSocketPoints[activeCategory] = info.socketTransform;
         }
 
         if (nextStepButton != null) nextStepButton.interactable = true;
     }
 
-    // --- LOGICA DE ENGENHARIA REVERSA ---
+    public void RemoveLastItem()
+    {
+        if (currentLayerTarget <= 0 || string.IsNullOrEmpty(activeCategory)) return;
+        if (!foodTypeParents.ContainsKey(activeCategory)) return;
+
+        Transform parent = foodTypeParents[activeCategory];
+        GameObject itemToDestroy = null;
+        IngredientSocket itemInfo = null;
+
+        for (int i = parent.childCount - 1; i >= 0; i--)
+        {
+            Transform child = parent.GetChild(i);
+            IngredientSocket info = child.GetComponent<IngredientSocket>();
+            if (info != null && info.myLayer == currentLayerTarget)
+            {
+                itemToDestroy = child.gameObject;
+                itemInfo = info;
+                break;
+            }
+        }
+
+        if (itemToDestroy != null)
+        {
+            totalPrice -= itemInfo.ingredientPrice;
+            UpdatePriceUI();
+            DestroyImmediate(itemToDestroy);
+            RecalculateSocket();
+
+            if (nextStepButton != null)
+                nextStepButton.interactable = CheckIfCurrentLayerHasItems();
+        }
+    }
+
     public void GoBack()
     {
         if (currentLayerTarget <= 0) return;
 
-        // 1. Remover itens da camada atual antes de voltar
         if (foodTypeParents.ContainsKey(activeCategory))
         {
             Transform parent = foodTypeParents[activeCategory];
-            // Criamos uma lista temporária para evitar erro de modificação de coleção durante o loop
             List<GameObject> toDestroy = new List<GameObject>();
 
             foreach (Transform child in parent)
@@ -91,54 +140,57 @@ public class FoodManager : MonoBehaviour
                 IngredientSocket info = child.GetComponent<IngredientSocket>();
                 if (info != null && info.myLayer == currentLayerTarget)
                 {
+                    totalPrice -= info.ingredientPrice;
                     toDestroy.Add(child.gameObject);
                 }
             }
-
             foreach (GameObject obj in toDestroy) DestroyImmediate(obj);
+            UpdatePriceUI();
         }
 
-        // 2. Decrementar camada
         currentLayerTarget--;
 
-        // 3. Se voltamos para o Menu Principal
         if (currentLayerTarget == 0)
         {
-            ResetOrder(); // Limpa tudo e volta ao menu
+            ResetOrder();
             return;
         }
 
-        // 4. Se ainda estamos dentro do lanche, precisamos achar o novo socket point "do topo"
-        UpdateLastSocketAfterBack();
-
-        // 5. Atualizar UI
+        RecalculateSocket();
         UpdateUIButtons();
 
-        // 6. Verificar se a camada para a qual voltamos tem itens (para habilitar o botão de avançar)
         if (nextStepButton != null) nextStepButton.interactable = CheckIfCurrentLayerHasItems();
     }
 
-    private void UpdateLastSocketAfterBack()
+    private void RecalculateSocket()
     {
         if (!foodTypeParents.ContainsKey(activeCategory)) return;
 
         Transform parent = foodTypeParents[activeCategory];
-        IngredientSocket lastItemFound = null;
+        IngredientSocket lastValidSocket = null;
 
-        // Procuramos o último item da camada agora ativa (currentLayerTarget)
-        foreach (Transform child in parent)
+        for (int i = parent.childCount - 1; i >= 0; i--)
         {
-            IngredientSocket info = child.GetComponent<IngredientSocket>();
-            if (info != null && info.myLayer == currentLayerTarget)
+            IngredientSocket info = parent.GetChild(i).GetComponent<IngredientSocket>();
+            if (info != null)
             {
-                lastItemFound = info;
+                lastValidSocket = info;
+                break;
             }
         }
 
-        if (lastItemFound != null)
-            lastSocketPoints[activeCategory] = lastItemFound.socketTransform;
+        if (lastValidSocket != null && lastValidSocket.socketTransform != null)
+            lastSocketPoints[activeCategory] = lastValidSocket.socketTransform;
         else
-            lastSocketPoints[activeCategory] = defaultSpawnPoint; // Volta para a base se não houver nada abaixo
+            lastSocketPoints[activeCategory] = defaultSpawnPoint;
+    }
+
+    private void UpdatePriceUI()
+    {
+        if (totalPriceText != null)
+        {
+            totalPriceText.text = "Total: R$ " + totalPrice.ToString("F2");
+        }
     }
 
     public IEnumerator VerifyLayerFoodExists()
@@ -171,8 +223,10 @@ public class FoodManager : MonoBehaviour
                 layerButtonGroups[i].SetActive(i == currentLayerTarget);
         }
 
-        // Controle de visibilidade do botão de voltar
-        if (backButton != null) backButton.gameObject.SetActive(currentLayerTarget > 0);
+        // Controla visibilidade dos botões extras
+        bool inIngredientSelection = currentLayerTarget > 0;
+        if (backButton != null) backButton.gameObject.SetActive(inIngredientSelection);
+        if (removeLastItemButton != null) removeLastItemButton.gameObject.SetActive(inIngredientSelection);
     }
 
     private bool CheckIfCurrentLayerHasItems()
@@ -192,6 +246,7 @@ public class FoodManager : MonoBehaviour
         currentLayerTarget = 0;
         UpdateUIButtons();
         if (nextStepButton != null) nextStepButton.gameObject.SetActive(false);
+        if (removeLastItemButton != null) removeLastItemButton.gameObject.SetActive(false);
         GameManager.gameManager.ChangeState(GameManager.GameState.ingredientsSelectionFinished);
     }
 
@@ -215,8 +270,11 @@ public class FoodManager : MonoBehaviour
         lastSocketPoints.Clear();
         activeCategory = "";
         currentLayerTarget = 0;
+        totalPrice = 0f;
+        UpdatePriceUI();
         UpdateUIButtons();
         if (nextStepButton != null) nextStepButton.gameObject.SetActive(false);
+        if (removeLastItemButton != null) removeLastItemButton.gameObject.SetActive(false);
         GameManager.gameManager.ChangeState(GameManager.GameState.resetOrdering);
     }
 }
