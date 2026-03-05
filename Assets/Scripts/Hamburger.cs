@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class Hamburger : Food
+public class Hamburger : FoodData
 {
     
 }

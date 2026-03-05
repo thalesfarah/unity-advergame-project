@@ -6,95 +6,119 @@ using UnityEngine;
 public class FoodManager : MonoBehaviour
 {
     private Dictionary<string, Transform> foodTypeParents = new Dictionary<string, Transform>();
-
     private Dictionary<string, Transform> lastSocketPoints = new Dictionary<string, Transform>();
 
+    [Header("UI References")]
     [SerializeField] GameObject[] buttons;
-
     [SerializeField] TextMeshProUGUI missingFoodLayerWarningText;
 
-    string activeCategory = "";
+    [Header("Setup")]
+    [SerializeField] Transform defaultSpawnPoint;
 
+    private string activeCategory = "";
+    private int currentLayerTarget = 1;
+    private int maxLayersActiveCategory = 0; // Armazena o limite da categoria atual
 
     private void Start()
     {
-        missingFoodLayerWarningText.text = 
-            "You should add one kind of ingredient at least to proceed";
+        missingFoodLayerWarningText.text = "Adicione um ingrediente para prosseguir";
+        missingFoodLayerWarningText.gameObject.SetActive(false);
     }
-    public void AddIngredient(Food foodData)
-    {
 
+    public void AddIngredient(FoodData foodData)
+    {
         if (foodData == null) return;
 
-        string categoryName = foodData.GetType().Name;
-
-        if (string.IsNullOrEmpty(activeCategory)) 
+        // 1. Lógica de Categoria e Definição de Limite
+        if (string.IsNullOrEmpty(activeCategory))
         {
-            activeCategory = categoryName;
+            activeCategory = foodData.categoryName;
+            maxLayersActiveCategory = foodData.maxLayersInCategory; // Define o limite aqui
+            currentLayerTarget = 1;
             GameManager.gameManager.ChangeState(GameManager.GameState.choosingIngredients);
-
         }
-        else if (activeCategory != categoryName)
+        else if (activeCategory != foodData.categoryName)
         {
-            Debug.LogWarning($"Você precisa finalizar o {activeCategory} antes de começar {categoryName}!");
+            Debug.LogWarning($"Finalize o {activeCategory} antes de começar {foodData.categoryName}!");
             return;
         }
 
-        Transform currentParent = GetOrCreateCategoryParent(categoryName);
-
-        Vector3 targetPos;
-
-        Quaternion targetRot;
-
-        if (lastSocketPoints.ContainsKey(categoryName) && lastSocketPoints[categoryName] != null)
+        // 2. Lógica de Camada
+        if (foodData.myLayer != currentLayerTarget)
         {
-            targetPos = lastSocketPoints[categoryName].position;
-
-            targetRot = lastSocketPoints[categoryName].rotation;
-        }
-        else
-        {
-            targetPos = foodData.foodPrefabSpawnPos.position;
-
-            targetRot = foodData.foodPrefabSpawnPos.rotation;
+            Debug.LogWarning($"Aguardando camada {currentLayerTarget}.");
+            return;
         }
 
-        
+        // 3. Spawn (Mantido)
+        Transform currentParent = GetOrCreateCategoryParent(activeCategory);
+        Vector3 targetPos = (lastSocketPoints.ContainsKey(activeCategory) && lastSocketPoints[activeCategory] != null)
+            ? lastSocketPoints[activeCategory].position
+            : defaultSpawnPoint.position;
+        Quaternion targetRot = (lastSocketPoints.ContainsKey(activeCategory) && lastSocketPoints[activeCategory] != null)
+            ? lastSocketPoints[activeCategory].rotation
+            : defaultSpawnPoint.rotation;
+
         GameObject newIngredient = Instantiate(foodData.foodPrefab, targetPos, targetRot);
-        
         newIngredient.transform.SetParent(currentParent);
 
         IngredientSocket info = newIngredient.GetComponent<IngredientSocket>();
-
         if (info != null && info.socketTransform != null)
         {
-            
-            lastSocketPoints[categoryName] = info.socketTransform;
+            lastSocketPoints[activeCategory] = info.socketTransform;
         }
     }
-    // Método para ser chamado pelo botão "Finalizar Item" (ex: "Fechar Hambúrguer")
+
+    public IEnumerator VerifyLayerFoodExists()
+    {
+        bool layerComplete = CheckIfCurrentLayerHasItems();
+
+        if (!layerComplete)
+        {
+            missingFoodLayerWarningText.text = $"Adicione a camada {currentLayerTarget} para avançar!";
+            missingFoodLayerWarningText.gameObject.SetActive(true);
+            yield return new WaitForSeconds(3f);
+            missingFoodLayerWarningText.gameObject.SetActive(false);
+        }
+        else
+        {
+            // Se a camada atual foi a última definida no ScriptableObject
+            if (currentLayerTarget >= maxLayersActiveCategory)
+            {
+                Debug.Log($"{activeCategory} concluído com todas as {maxLayersActiveCategory} camadas!");
+                FinishCurrentCategory(); // Finaliza e limpa categoria ativa
+            }
+            else
+            {
+                currentLayerTarget++;
+                Debug.Log($"Camada {currentLayerTarget - 1} confirmada. Próxima: {currentLayerTarget}");
+            }
+        }
+    }
+
+    private bool CheckIfCurrentLayerHasItems()
+    {
+        // Aqui você pode refinar a busca para garantir que o item na cena 
+        // realmente pertence à currentLayerTarget se desejar.
+        return foodTypeParents.ContainsKey(activeCategory) && foodTypeParents[activeCategory].childCount > 0;
+    }
+
     public void FinishCurrentCategory()
     {
-        if (string.IsNullOrEmpty(activeCategory)) return;
+        activeCategory = "";
+        currentLayerTarget = 1;
+        maxLayersActiveCategory = 0;
 
-        Debug.Log($"{activeCategory} finalizado. Agora você pode escolher outra categoria.");
-        activeCategory = ""; // Libera para a próxima categoria
-
-        // Se quiser que todos os botões voltem a aparecer após finalizar
-        foreach (GameObject button in buttons)
-        {
-            button.SetActive(true);
-        }
+        foreach (GameObject button in buttons) button.SetActive(true);
+        GameManager.gameManager.ChangeState(GameManager.GameState.ingredientsSelectionFinished);
     }
 
     private Transform GetOrCreateCategoryParent(string categoryName)
     {
         if (!foodTypeParents.ContainsKey(categoryName))
         {
-            GameObject newGroup = new GameObject(categoryName);
-
+            GameObject newGroup = new GameObject("Group_" + categoryName);
             newGroup.transform.SetParent(this.transform);
-
             foodTypeParents.Add(categoryName, newGroup.transform);
         }
         return foodTypeParents[categoryName];
@@ -102,43 +126,16 @@ public class FoodManager : MonoBehaviour
 
     public void ResetOrder()
     {
-        foreach (var group in foodTypeParents.Values)
-        {
-            if (group != null) Destroy(group.gameObject);
-        }
+        foreach (var group in foodTypeParents.Values) if (group != null) Destroy(group.gameObject);
         foodTypeParents.Clear();
-
         lastSocketPoints.Clear();
-
         activeCategory = "";
-
+        currentLayerTarget = 1;
+        maxLayersActiveCategory = 0;
         GameManager.gameManager.ChangeState(GameManager.GameState.resetOrdering);
     }
-    public IEnumerator VerifyLayerFoodExists() 
-    {
-        bool missingFoodLayer = false;
-        if (GameObject.FindGameObjectsWithTag("Food_Layer2").Length < 1)
-        {
-            missingFoodLayer = true;
-            missingFoodLayerWarningText.gameObject.SetActive(true);
-            yield return new WaitForSeconds(3f);
-            missingFoodLayerWarningText.gameObject.SetActive(false);
-            
-            Debug.Log("No food objects found in the scene.");
-            
-        }
-        if (missingFoodLayer)
-            foreach (GameObject button in buttons)
-            {
-                button.SetActive(true);
-            }
-        else
-            foreach (GameObject button in buttons)
-            {
-                button.SetActive(false);
-            }  
-    }
-    public void OnButtonClick() 
+
+    public void OnButtonClick()
     {
         StartCoroutine(VerifyLayerFoodExists());
     }

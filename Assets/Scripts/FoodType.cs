@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class FoodType : Food
+public class FoodType : FoodData
 {
     
 }
