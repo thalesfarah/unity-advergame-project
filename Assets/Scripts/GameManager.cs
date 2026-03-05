@@ -1,9 +1,10 @@
 using UnityEngine;
+
 public class GameManager : MonoBehaviour
 {
     public static GameManager gameManager;
 
-    public enum GameState 
+    public enum GameState
     {
         startedOrdering,
         choosingIngredients,
@@ -12,6 +13,7 @@ public class GameManager : MonoBehaviour
         resetOrdering
     }
     public GameState currentGameState;
+
     private void Awake()
     {
         if (gameManager == null)
@@ -25,10 +27,10 @@ public class GameManager : MonoBehaviour
             Destroy(gameObject);
         }
     }
+
     public void ChangeState(GameState newState)
     {
         currentGameState = newState;
-        Debug.Log("state changed to: " + newState);
-
+        Debug.Log("Estado alterado para: " + newState);
     }
 }

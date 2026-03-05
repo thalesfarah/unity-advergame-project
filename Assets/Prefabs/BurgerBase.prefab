@@ -143,3 +143,4 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::IngredientSocket
   socketTransform: {fileID: 8728618904907787824}
+  myLayer: 1
