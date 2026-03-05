@@ -15,5 +15,6 @@ MonoBehaviour:
   ingredientName: BurgerSalad
   categoryName: Hamburger
   price: 0
-  foodPrefab: {fileID: 2113628804261800721, guid: e980faa3760398549b692a9a6669cb9c, type: 3}
-  myLayer: 2
+  foodPrefab: {fileID: 2113628804261800721, guid: 656cdea6fc84658469716e86600e37ae, type: 3}
+  myLayer: 3
+  maxLayersInCategory: 4
