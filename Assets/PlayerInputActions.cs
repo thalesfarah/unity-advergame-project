@@ -125,6 +125,17 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": """",
+                    ""id"": ""f62a0048-641f-4680-870f-6d48f2b52a98"",
+                    ""path"": ""<Touchscreen>/delta"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""MoveCamera"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
                     ""id"": ""9d9a024d-3e4f-4400-b556-eefc18010b56"",
                     ""path"": ""<Mouse>/scroll"",
                     ""interactions"": """",
