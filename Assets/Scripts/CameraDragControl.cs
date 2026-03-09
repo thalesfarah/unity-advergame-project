@@ -7,7 +7,7 @@ public class CameraDragControl : MonoBehaviour
     [SerializeField] private CinemachineInputAxisController inputController;
     [SerializeField] private CinemachineCamera virtualCamera;
 
-    [SerializeField] private float zoomSensitivity = 0.1f; // Ajustado para ser mais suave no Scroll e Touch
+    [SerializeField] private float zoomSensitivity = 0.05f; // Sensibilidade menor para celular
     [SerializeField] private float minFOV = 20f;
     [SerializeField] private float maxFOV = 60f;
 
@@ -21,15 +21,14 @@ public class CameraDragControl : MonoBehaviour
     {
         bool isPointerPressed = false;
 
-        // Verifica entrada de Mouse
+        // Mouse: Botão esquerdo
         if (Mouse.current != null && Mouse.current.leftButton.isPressed)
         {
             isPointerPressed = true;
         }
 
-        // Verifica entrada de Touch (Celular)
-        // Se houver pelo menos um toque na tela e ele estiver na fase de pressionado/movendo
-        if (Touchscreen.current != null && Touchscreen.current.touches.Count > 0)
+        // Touch: Apenas se houver EXATAMENTE 1 dedo (para não rotacionar durante o Pinch Zoom)
+        if (Touchscreen.current != null && Touchscreen.current.touches.Count == 1)
         {
             if (Touchscreen.current.touches[0].press.isPressed)
             {
@@ -37,7 +36,6 @@ public class CameraDragControl : MonoBehaviour
             }
         }
 
-        // Ativa o controle do Cinemachine apenas enquanto houver pressão
         if (inputController != null)
         {
             inputController.enabled = isPointerPressed;
@@ -48,41 +46,38 @@ public class CameraDragControl : MonoBehaviour
     {
         float currentFOV = virtualCamera.Lens.FieldOfView;
 
-        // 1. Zoom via Mouse Scroll
+        // 1. Scroll do Mouse
         if (Mouse.current != null)
         {
             Vector2 scrollDelta = Mouse.current.scroll.ReadValue();
             if (scrollDelta.y != 0)
             {
-                currentFOV -= (scrollDelta.y * zoomSensitivity);
+                // Multiplicamos por um valor fixo pois o scrollDelta.y costuma ser alto (120/-120)
+                currentFOV -= (scrollDelta.y * zoomSensitivity * 0.1f);
             }
         }
 
-        // 2. Zoom via Pinch (Pinça com dois dedos no celular)
+        // 2. Pinch Zoom (Dois dedos)
         if (Touchscreen.current != null && Touchscreen.current.touches.Count >= 2)
         {
-            var touch0 = Touchscreen.current.touches[0];
-            var touch1 = Touchscreen.current.touches[1];
+            var t0 = Touchscreen.current.touches[0];
+            var t1 = Touchscreen.current.touches[1];
 
-            if (touch0.isInProgress && touch1.isInProgress)
+            if (t0.isInProgress && t1.isInProgress)
             {
-                // Posições atuais e anteriores para calcular a variação da distância
-                Vector2 pos0 = touch0.position.ReadValue();
-                Vector2 pos1 = touch1.position.ReadValue();
-                Vector2 lastPos0 = pos0 - touch0.delta.ReadValue();
-                Vector2 lastPos1 = pos1 - touch1.delta.ReadValue();
+                Vector2 pos0 = t0.position.ReadValue();
+                Vector2 pos1 = t1.position.ReadValue();
+                Vector2 prevPos0 = pos0 - t0.delta.ReadValue();
+                Vector2 prevPos1 = pos1 - t1.delta.ReadValue();
 
+                float prevDist = Vector2.Distance(prevPos0, prevPos1);
                 float currentDist = Vector2.Distance(pos0, pos1);
-                float lastDist = Vector2.Distance(lastPos0, lastPos1);
+                float deltaDist = currentDist - prevDist;
 
-                float deltaDist = currentDist - lastDist;
-
-                // Subtraímos o delta para que "abrir os dedos" diminua o FOV (Zoom In)
-                currentFOV -= (deltaDist * zoomSensitivity);
+                currentFOV -= deltaDist * zoomSensitivity;
             }
         }
 
-        // Aplica o limite e atualiza a câmera
         virtualCamera.Lens.FieldOfView = Mathf.Clamp(currentFOV, minFOV, maxFOV);
     }
 }
