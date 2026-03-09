@@ -22,11 +22,12 @@ public class CameraDragControl : MonoBehaviour
         bool isPointerPressed = false;
 
         // Mouse: Botão esquerdo
+#if UNITY_EDITOR
         if (Mouse.current != null && Mouse.current.leftButton.isPressed)
         {
             isPointerPressed = true;
         }
-
+#elif UNITY_IOS || UNITY_ANDROID
         // Touch: Apenas se houver EXATAMENTE 1 dedo (para não rotacionar durante o Pinch Zoom)
         if (Touchscreen.current != null && Touchscreen.current.touches.Count == 1)
         {
@@ -35,17 +36,17 @@ public class CameraDragControl : MonoBehaviour
                 isPointerPressed = true;
             }
         }
-
+#endif
         if (inputController != null)
         {
             inputController.enabled = isPointerPressed;
         }
     }
-
     private void HandleZoomInput()
     {
         float currentFOV = virtualCamera.Lens.FieldOfView;
 
+#if UNITY_EDITOR
         // 1. Scroll do Mouse
         if (Mouse.current != null)
         {
@@ -56,7 +57,7 @@ public class CameraDragControl : MonoBehaviour
                 currentFOV -= (scrollDelta.y * zoomSensitivity * 0.1f);
             }
         }
-
+#elif UNITY_IOS || UNITY_ANDROID
         // 2. Pinch Zoom (Dois dedos)
         if (Touchscreen.current != null && Touchscreen.current.touches.Count >= 2)
         {
@@ -77,7 +78,7 @@ public class CameraDragControl : MonoBehaviour
                 currentFOV -= deltaDist * zoomSensitivity;
             }
         }
-
+#endif
         virtualCamera.Lens.FieldOfView = Mathf.Clamp(currentFOV, minFOV, maxFOV);
     }
 }
