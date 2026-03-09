@@ -10,11 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2c628d5be43d58d4e862414fd4215d82, type: 3}
-  m_Name: BurgerSalad
+  m_Name: BurgerLettuce
   m_EditorClassIdentifier: Assembly-CSharp::FoodData
-  ingredientName: BurgerSalad
+  ingredientName: Lettuce
   categoryName: Hamburger
-  price: 2
-  foodPrefab: {fileID: 2113628804261800721, guid: 656cdea6fc84658469716e86600e37ae, type: 3}
+  price: 1
+  foodPrefab: {fileID: 2113628804261800721, guid: e980faa3760398549b692a9a6669cb9c, type: 3}
   myLayer: 2
   maxLayersInCategory: 3
