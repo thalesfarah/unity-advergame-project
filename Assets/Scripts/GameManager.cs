@@ -33,4 +33,8 @@ public class GameManager : MonoBehaviour
         currentGameState = newState;
         Debug.Log("Estado alterado para: " + newState);
     }
+    public void QuitGame() 
+    {
+        Application.Quit();
+    }
 }

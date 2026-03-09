@@ -265,7 +265,7 @@ public class FoodManager : MonoBehaviour
         if (foodTypeParents.ContainsKey(activeGroupId))
         {
             Transform categoryGroup = foodTypeParents[activeGroupId];
-            StartCoroutine(DeactivateCategoryAfterDelay(categoryGroup.gameObject, 5f));
+            StartCoroutine(DeactivateCategoryAfterDelay(categoryGroup.gameObject, 3.5f));
         }
 
         // Lógica de reset da UI
