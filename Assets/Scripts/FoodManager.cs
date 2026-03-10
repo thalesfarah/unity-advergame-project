@@ -9,21 +9,26 @@ public class FoodManager : MonoBehaviour
     private Dictionary<string, Transform> foodTypeParents = new Dictionary<string, Transform>();
     private Dictionary<string, Transform> lastSocketPoints = new Dictionary<string, Transform>();
 
+    [SerializeField] ParticleSystem confettiEffect;
+
     [Header("UI References")]
     [SerializeField] GameObject[] layerButtonGroups;
-    [SerializeField] TextMeshProUGUI missingFoodLayerWarningText;
-    [SerializeField] TextMeshProUGUI totalPriceText;
+    [SerializeField] TextMeshProUGUI 
+        missingFoodLayerWarningText,
+        finishOrderWarningText, 
+        totalPriceText;
     [SerializeField] Button nextStepButton;
     [SerializeField] Button backButton;
     [SerializeField] Button removeLastItemButton;
     [SerializeField] Button[] removeCategoryButton, addCategoryButton;
+    [SerializeField] GameObject panel;
 
     [Header("Setup")]
     [SerializeField] Transform defaultSpawnPoint;
 
     private string activeCategory = "";
-    private string activeGroupId = ""; // NOVA VARIÁVEL: Identificador único do grupo atual
-    private int orderItemCounter = 0;  // CONTADOR: Para garantir que cada ID seja único
+    private string activeGroupId = "";
+    private int orderItemCounter = 0;
 
     private int currentLayerTarget = 0;
     private int maxLayersActiveCategory = 0;
@@ -34,21 +39,65 @@ public class FoodManager : MonoBehaviour
         currentLayerTarget = 0;
         totalPrice = 0f;
         orderItemCounter = 0;
+
+        if (finishOrderWarningText != null) finishOrderWarningText.gameObject.SetActive(false);
+
         UpdatePriceUI();
 
-        // Esconde os botões de ação no menu inicial
         if (nextStepButton != null) nextStepButton.gameObject.SetActive(false);
         if (backButton != null) backButton.gameObject.SetActive(false);
         if (removeLastItemButton != null) removeLastItemButton.gameObject.SetActive(false);
 
         UpdateUIButtons();
     }
+    public void ConfettiEffect()
+    {
+        if (confettiEffect != null)
+            confettiEffect.gameObject.SetActive(true);
+            confettiEffect.Stop();
+            confettiEffect.Play();
+    }
+
+    // --- LOGICA DE ESTADO PARA O BOTAO DE COMPRA ---
+    public void TryFinishOrder()
+    {
+        // Se o estado for "choosingIngredients", significa que ele ainda está dentro de um lanche
+        if (GameManager.gameManager.currentGameState == GameManager.GameState.choosingIngredients)
+        {
+            StopAllCoroutines(); // Para evitar conflitos de texto
+            StartCoroutine(ShowFinishOrderWarning());
+            return;
+        }
+        else 
+        {
+
+            GameManager.gameManager.ChangeState(GameManager.GameState.orderFinished);
+            panel.SetActive(true);
+            Debug.Log("Order purchased successfully!");
+
+        }
+
+        // Se chegou aqui, ele pode finalizar
+        // Aqui você chamaria sua tela de sucesso/pagamento
+    }
+
+    private IEnumerator ShowFinishOrderWarning()
+    {
+        if (finishOrderWarningText != null)
+        {
+            finishOrderWarningText.text = "Please finish your current item assembly first!";
+            finishOrderWarningText.gameObject.SetActive(true);
+            yield return new WaitForSeconds(2.5f);
+            finishOrderWarningText.gameObject.SetActive(false);
+        }
+    }
+
+    // --- RESTANTE DO CODIGO (MANTIDO) ---
 
     public void SelectCategory(FoodData categoryData)
     {
         if (categoryData == null) return;
 
-        // Cria um ID único para este novo pedido (Ex: "Hamburger_1", "Hamburger_2")
         orderItemCounter++;
         activeCategory = categoryData.categoryName;
         activeGroupId = activeCategory + "_" + orderItemCounter;
@@ -60,7 +109,6 @@ public class FoodManager : MonoBehaviour
         currentLayerTarget = 1;
         UpdateUIButtons();
 
-        // Ativa os botões de controle ao entrar em uma categoria
         if (nextStepButton != null)
         {
             nextStepButton.gameObject.SetActive(true);
@@ -75,13 +123,11 @@ public class FoodManager : MonoBehaviour
     public void AddIngredient(FoodData foodData)
     {
         if (foodData == null || foodData.myLayer != currentLayerTarget) return;
-        // Validação usando activeCategory original para impedir misturar batata com pão
         if (foodData.categoryName != activeCategory) return;
 
         totalPrice += foodData.price;
         UpdatePriceUI();
 
-        // A partir daqui usamos o activeGroupId (ex: "Hamburger_2")
         Transform currentParent = GetOrCreateCategoryParent(activeGroupId);
         Vector3 targetPos = (lastSocketPoints.ContainsKey(activeGroupId) && lastSocketPoints[activeGroupId] != null)
         ? lastSocketPoints[activeGroupId].position : defaultSpawnPoint.position;
@@ -161,17 +207,12 @@ public class FoodManager : MonoBehaviour
 
         if (currentLayerTarget == 0)
         {
-            // Se voltamos ao menu inicial (camada 0) e não finalizamos, vamos deletar o grupo cancelado
             if (foodTypeParents.ContainsKey(activeGroupId))
             {
                 Destroy(foodTypeParents[activeGroupId].gameObject);
                 foodTypeParents.Remove(activeGroupId);
             }
             lastSocketPoints.Remove(activeGroupId);
-
-            // Subtrai o preço base da categoria cancelada
-            // Nota: Se quiser essa funcionalidade precisa guardar o preço base, caso contrário, 
-            // no ResetOrder abaixo tudo será zerado mesmo.
             ResetOrder();
             return;
         }
@@ -243,7 +284,6 @@ public class FoodManager : MonoBehaviour
                 layerButtonGroups[i].SetActive(i == currentLayerTarget);
         }
 
-        // Controla visibilidade dos botões extras
         bool inIngredientSelection = currentLayerTarget > 0;
         if (backButton != null) backButton.gameObject.SetActive(inIngredientSelection);
         if (removeLastItemButton != null) removeLastItemButton.gameObject.SetActive(inIngredientSelection);
@@ -265,12 +305,11 @@ public class FoodManager : MonoBehaviour
         if (foodTypeParents.ContainsKey(activeGroupId))
         {
             Transform categoryGroup = foodTypeParents[activeGroupId];
-            StartCoroutine(DeactivateCategoryAfterDelay(categoryGroup.gameObject, 3.5f));
+            StartCoroutine(DeactivateCategoryAfterDelay(categoryGroup.gameObject, 2f));
         }
 
-        // Lógica de reset da UI
         activeCategory = "";
-        activeGroupId = ""; // Limpa o ID ativo
+        activeGroupId = "";
         currentLayerTarget = 0;
         UpdateUIButtons();
 
@@ -322,7 +361,7 @@ public class FoodManager : MonoBehaviour
         activeGroupId = "";
         currentLayerTarget = 0;
         totalPrice = 0f;
-        orderItemCounter = 0; // Reseta o contador também
+        orderItemCounter = 0;
         UpdatePriceUI();
         UpdateUIButtons();
         if (nextStepButton != null) nextStepButton.gameObject.SetActive(false);
