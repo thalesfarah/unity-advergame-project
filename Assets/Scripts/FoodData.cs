@@ -5,7 +5,6 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "NewFoodItem", menuName = "Food/Ingredient")]
 public class FoodData : ScriptableObject
 {
-    [Header("Basic Information")]
     // The display name of the ingredient
     public string ingredientName;
 
@@ -16,7 +15,6 @@ public class FoodData : ScriptableObject
     // The cost of adding this specific item to the order
     public float price;
 
-    [Header("Visuals & Logic")]
     // The 3D model (Prefab) that will be instantiated in the scene
     public GameObject foodPrefab;
 
