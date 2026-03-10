@@ -6,30 +6,27 @@ using UnityEngine.UI;
 
 public class FoodManager : MonoBehaviour
 {
-    // Storage for the instantiated food objects grouped by their unique ID
     private Dictionary<string, Transform> foodTypeParents = new Dictionary<string, Transform>();
-    // Tracks the last attachment point (socket) for each food item to stack ingredients correctly
     private Dictionary<string, Transform> lastSocketPoints = new Dictionary<string, Transform>();
 
     [SerializeField] ParticleSystem confettiEffect;
 
     [Header("UI References")]
-    [SerializeField] GameObject[] layerButtonGroups; // UI groups for each step (Bread, Meat, etc.)
+    [SerializeField] GameObject[] layerButtonGroups;
     [SerializeField] TextMeshProUGUI missingFoodLayerWarningText, finishOrderWarningText, totalPriceText;
     [SerializeField] Button nextStepButton, backButton, removeLastItemButton;
     [SerializeField] Button[] removeCategoryButton, addCategoryButton;
-    public GameObject panel; // The confirmation/success popup
+    public GameObject panel;
 
     [Header("Setup")]
-    [SerializeField] Transform defaultSpawnPoint; // Initial position for new food bases
+    [SerializeField] Transform defaultSpawnPoint;
 
-    // Internal state tracking
-    private string activeCategory = "";     // e.g., "Burger"
-    private string activeGroupId = "";      // e.g., "Burger_1"
-    private int orderItemCounter = 0;       // Incrementing ID for multiple items in one order
-    private int currentLayerTarget = 0;     // Current construction step (Layer 1, 2...)
-    private int maxLayersActiveCategory = 0;// How many layers the current food needs
-    private float totalPrice = 0f;          // Cumulative price of the whole cart
+    private string activeCategory = "";
+    private string activeGroupId = "";
+    private int orderItemCounter = 0;
+    private int currentLayerTarget = 0;
+    private int maxLayersActiveCategory = 0;
+    private float totalPrice = 0f;
 
     private void Start()
     {
@@ -38,7 +35,6 @@ public class FoodManager : MonoBehaviour
         UpdateUIButtons();
     }
 
-    // Resets UI and local counters to a clean state
     private void ResetVariables()
     {
         currentLayerTarget = 0;
@@ -50,20 +46,17 @@ public class FoodManager : MonoBehaviour
         if (removeLastItemButton != null) removeLastItemButton.gameObject.SetActive(false);
     }
 
-    // Called when clicking a main food button (e.g., "Burger")
+    // Starts building a new food item from a category
     public void SelectCategory(FoodData categoryData)
     {
-        // STATE CHECK: Ignore click if currently confirming the whole order or already building something
         if (GameManager.gameManager.currentGameState == GameManager.GameState.confirmingOrdering ||
             GameManager.gameManager.currentGameState == GameManager.GameState.choosingIngredients)
         {
-            Debug.LogWarning("Finish current assembly or close the panel first!");
             return;
         }
 
         if (categoryData == null) return;
 
-        // Setup the new item data
         orderItemCounter++;
         activeCategory = categoryData.categoryName;
         activeGroupId = activeCategory + "_" + orderItemCounter;
@@ -76,20 +69,18 @@ public class FoodManager : MonoBehaviour
 
         UpdateUIButtons();
 
-        // Enable building UI
         if (nextStepButton != null)
         {
             nextStepButton.gameObject.SetActive(true);
-            nextStepButton.interactable = false; // Requires at least one ingredient
+            nextStepButton.interactable = false;
         }
         if (backButton != null) backButton.gameObject.SetActive(true);
         if (removeLastItemButton != null) removeLastItemButton.gameObject.SetActive(true);
 
-        // LOCK STATE: Prevent adding other categories until this one is finished
         GameManager.gameManager.ChangeState(GameManager.GameState.choosingIngredients);
     }
 
-    // Spawns an ingredient and attaches it to the food stack
+    // Adds a visual ingredient and updates price/stacking
     public void AddIngredient(FoodData foodData)
     {
         if (foodData == null || foodData.myLayer != currentLayerTarget) return;
@@ -98,7 +89,6 @@ public class FoodManager : MonoBehaviour
         totalPrice += foodData.price;
         UpdatePriceUI();
 
-        // Position logic based on the previous ingredient's socket
         Transform currentParent = GetOrCreateCategoryParent(activeGroupId);
         Vector3 targetPos = (lastSocketPoints.ContainsKey(activeGroupId) && lastSocketPoints[activeGroupId] != null)
             ? lastSocketPoints[activeGroupId].position : defaultSpawnPoint.position;
@@ -108,7 +98,6 @@ public class FoodManager : MonoBehaviour
         GameObject newIngredient = Instantiate(foodData.foodPrefab, targetPos, targetRot);
         newIngredient.transform.SetParent(currentParent);
 
-        // Save metadata for stacking and pricing
         IngredientSocket info = newIngredient.GetComponent<IngredientSocket>();
         if (info != null)
         {
@@ -120,13 +109,60 @@ public class FoodManager : MonoBehaviour
         if (nextStepButton != null) nextStepButton.interactable = true;
     }
 
-    // Completes the assembly of a single item
+    // Returns to the previous layer
+    public void GoBack()
+    {
+        if (currentLayerTarget > 1)
+        {
+            currentLayerTarget--;
+            UpdateUIButtons();
+        }
+    }
+
+    // Removes the last item from the current build
+    public void RemoveLastItem()
+    {
+        if (GameManager.gameManager.currentGameState != GameManager.GameState.choosingIngredients) return;
+
+        if (foodTypeParents.ContainsKey(activeGroupId))
+        {
+            Transform currentParent = foodTypeParents[activeGroupId];
+            int childCount = currentParent.childCount;
+
+            if (childCount > 1)
+            {
+                Transform lastItem = currentParent.GetChild(childCount - 1);
+                IngredientSocket info = lastItem.GetComponent<IngredientSocket>();
+
+                if (info != null)
+                {
+                    totalPrice -= info.ingredientPrice;
+                    UpdatePriceUI();
+                }
+
+                Destroy(lastItem.gameObject);
+
+                Transform penultItem = currentParent.GetChild(childCount - 2);
+                IngredientSocket penultInfo = penultItem.GetComponent<IngredientSocket>();
+
+                if (penultInfo != null && penultInfo.socketTransform != null)
+                {
+                    lastSocketPoints[activeGroupId] = penultInfo.socketTransform;
+                }
+                else
+                {
+                    lastSocketPoints[activeGroupId] = defaultSpawnPoint;
+                }
+            }
+        }
+    }
+
+    // Finishes building the current item
     public void FinishCurrentCategory()
     {
         if (foodTypeParents.ContainsKey(activeGroupId))
         {
             Transform categoryGroup = foodTypeParents[activeGroupId];
-            // Hide the object after a delay to clear the workspace for the next item
             StartCoroutine(DeactivateCategoryAfterDelay(categoryGroup.gameObject, 2f));
         }
 
@@ -139,14 +175,12 @@ public class FoodManager : MonoBehaviour
         if (backButton != null) backButton.gameObject.SetActive(false);
         if (removeLastItemButton != null) removeLastItemButton.gameObject.SetActive(false);
 
-        // UNLOCK STATE: Return to initial state so the player can add more items to the same order
         GameManager.gameManager.ChangeState(GameManager.GameState.startedOrdering);
     }
 
-    // Opens the final checkout panel
+    // Triggers the final order step
     public void TryFinishOrder()
     {
-        // Guard: Player can't check out if they are in the middle of a burger
         if (GameManager.gameManager.currentGameState == GameManager.GameState.choosingIngredients)
         {
             StopAllCoroutines();
@@ -154,18 +188,16 @@ public class FoodManager : MonoBehaviour
             return;
         }
 
-        // LOCK STATE: Now nothing can be clicked until the panel is closed/confirmed
-        GameManager.gameManager.ChangeState(GameManager.GameState.confirmingOrdering);
-
+        GameManager.gameManager.ChangeState(GameManager.GameState.orderFinished);
         if (panel != null) panel.SetActive(true);
+
+        
     }
 
-    // Resets the entire scene and order (Called by the 'X' button or after Success)
+    // Resets everything for a new customer
     public void ResetOrder()
     {
-        // Cleanup all spawned food objects
         foreach (var group in foodTypeParents.Values) if (group != null) Destroy(group.gameObject);
-
         foodTypeParents.Clear();
         lastSocketPoints.Clear();
         ResetVariables();
@@ -174,20 +206,17 @@ public class FoodManager : MonoBehaviour
 
         if (panel != null) panel.SetActive(false);
 
-        // FINAL RESET: Back to square one
         GameManager.gameManager.ChangeState(GameManager.GameState.startedOrdering);
     }
 
     private void UpdatePriceUI() { if (totalPriceText != null) totalPriceText.text = "Total: R$ " + totalPrice.ToString("F2"); }
 
-    // Toggle visibility of UI groups based on current layer
     private void UpdateUIButtons()
     {
         for (int i = 0; i < layerButtonGroups.Length; i++)
             if (layerButtonGroups[i] != null) layerButtonGroups[i].SetActive(i == currentLayerTarget);
     }
 
-    // Creates a parent container for each unique food item in the hierarchy
     private Transform GetOrCreateCategoryParent(string groupId)
     {
         if (!foodTypeParents.ContainsKey(groupId))
@@ -216,7 +245,6 @@ public class FoodManager : MonoBehaviour
         }
     }
 
-    // Entry point for the 'Next' arrow button
     public void OnButtonClick() => StartCoroutine(VerifyLayerFoodExists());
 
     public IEnumerator VerifyLayerFoodExists()
@@ -234,7 +262,6 @@ public class FoodManager : MonoBehaviour
         }
     }
 
-    // Checks if the user added at least one ingredient in the current step
     private bool CheckIfCurrentLayerHasItems()
     {
         if (!foodTypeParents.ContainsKey(activeGroupId)) return false;
@@ -246,6 +273,7 @@ public class FoodManager : MonoBehaviour
         return false;
     }
 
+    // Plays the confetti particle effect
     public void ConfettiEffect()
     {
         if (confettiEffect != null)
