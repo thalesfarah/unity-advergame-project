@@ -64,21 +64,23 @@ public class FoodManager : MonoBehaviour
         // Se o estado for "choosingIngredients", significa que ele ainda está dentro de um lanche
         if (GameManager.gameManager.currentGameState == GameManager.GameState.choosingIngredients)
         {
-            StopAllCoroutines(); // Para evitar conflitos de texto
+            StopAllCoroutines();
             StartCoroutine(ShowFinishOrderWarning());
             return;
         }
-        else 
+        else
         {
-
+            // --- SUCESSO NO PEDIDO ---
             GameManager.gameManager.ChangeState(GameManager.GameState.orderFinished);
             panel.SetActive(true);
             Debug.Log("Order purchased successfully!");
 
-        }
+            // Reseta o valor total para 0
+            totalPrice = 0f;
+            UpdatePriceUI();
 
-        // Se chegou aqui, ele pode finalizar
-        // Aqui você chamaria sua tela de sucesso/pagamento
+            ResetOrder(); 
+        }
     }
 
     private IEnumerator ShowFinishOrderWarning()

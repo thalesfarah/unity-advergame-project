@@ -16,5 +16,5 @@ MonoBehaviour:
   categoryName: Hamburger
   price: 1
   foodPrefab: {fileID: 2113628804261800721, guid: e980faa3760398549b692a9a6669cb9c, type: 3}
-  myLayer: 2
+  myLayer: 1
   maxLayersInCategory: 3
