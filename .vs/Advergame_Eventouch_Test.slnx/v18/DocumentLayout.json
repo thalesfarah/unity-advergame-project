@@ -3,10 +3,6 @@
   "WorkspaceRootPath": "C:\\Users\\thofa\\Documents\\Thales\\Estudos_E_Trabalhos\\Projetos\\Advergame_Eventouch_Test\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\thofa\\Documents\\Thales\\Estudos_E_Trabalhos\\Projetos\\Advergame_Eventouch_Test\\Assets\\ParticleEffectForUGUI-main\\Editor\\AnimatablePropertyEditor.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Assets\\ParticleEffectForUGUI-main\\Editor\\AnimatablePropertyEditor.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{B4CD19DA-EE08-5225-FB19-1D0DFA4113DD}|Assembly-CSharp.csproj|c:\\users\\thofa\\documents\\thales\\estudos_e_trabalhos\\projetos\\advergame_eventouch_test\\assets\\scripts\\foodmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{B4CD19DA-EE08-5225-FB19-1D0DFA4113DD}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\foodmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
@@ -17,6 +13,10 @@
     {
       "AbsoluteMoniker": "D:0:0:{B4CD19DA-EE08-5225-FB19-1D0DFA4113DD}|Assembly-CSharp.csproj|c:\\users\\thofa\\documents\\thales\\estudos_e_trabalhos\\projetos\\advergame_eventouch_test\\assets\\scripts\\fooddata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{B4CD19DA-EE08-5225-FB19-1D0DFA4113DD}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\fooddata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B4CD19DA-EE08-5225-FB19-1D0DFA4113DD}|Assembly-CSharp.csproj|c:\\users\\thofa\\documents\\thales\\estudos_e_trabalhos\\projetos\\advergame_eventouch_test\\assets\\scripts\\cameradragcontrol.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B4CD19DA-EE08-5225-FB19-1D0DFA4113DD}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\cameradragcontrol.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{B4CD19DA-EE08-5225-FB19-1D0DFA4113DD}|Assembly-CSharp.csproj|c:\\users\\thofa\\documents\\thales\\estudos_e_trabalhos\\projetos\\advergame_eventouch_test\\assets\\scripts\\ingredientsocket.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -30,30 +30,30 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 0,
+          "SelectedChildIndex": 4,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "AnimatablePropertyEditor.cs",
-              "DocumentMoniker": "C:\\Users\\thofa\\Documents\\Thales\\Estudos_E_Trabalhos\\Projetos\\Advergame_Eventouch_Test\\Assets\\ParticleEffectForUGUI-main\\Editor\\AnimatablePropertyEditor.cs",
-              "RelativeDocumentMoniker": "Assets\\ParticleEffectForUGUI-main\\Editor\\AnimatablePropertyEditor.cs",
-              "ToolTip": "C:\\Users\\thofa\\Documents\\Thales\\Estudos_E_Trabalhos\\Projetos\\Advergame_Eventouch_Test\\Assets\\ParticleEffectForUGUI-main\\Editor\\AnimatablePropertyEditor.cs",
-              "RelativeToolTip": "Assets\\ParticleEffectForUGUI-main\\Editor\\AnimatablePropertyEditor.cs",
-              "ViewState": "AgIAAEAAAAAAAAAAAAApwFAAAABRAAAAAAAAAA==",
+              "DocumentIndex": 3,
+              "Title": "CameraDragControl.cs",
+              "DocumentMoniker": "C:\\Users\\thofa\\Documents\\Thales\\Estudos_E_Trabalhos\\Projetos\\Advergame_Eventouch_Test\\Assets\\Scripts\\CameraDragControl.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\CameraDragControl.cs",
+              "ToolTip": "C:\\Users\\thofa\\Documents\\Thales\\Estudos_E_Trabalhos\\Projetos\\Advergame_Eventouch_Test\\Assets\\Scripts\\CameraDragControl.cs",
+              "RelativeToolTip": "Assets\\Scripts\\CameraDragControl.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-09T23:55:59.352Z",
+              "WhenOpened": "2026-03-10T03:17:37.762Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 2,
               "Title": "FoodData.cs",
               "DocumentMoniker": "C:\\Users\\thofa\\Documents\\Thales\\Estudos_E_Trabalhos\\Projetos\\Advergame_Eventouch_Test\\Assets\\Scripts\\FoodData.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\FoodData.cs",
               "ToolTip": "C:\\Users\\thofa\\Documents\\Thales\\Estudos_E_Trabalhos\\Projetos\\Advergame_Eventouch_Test\\Assets\\Scripts\\FoodData.cs",
               "RelativeToolTip": "Assets\\Scripts\\FoodData.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAAABAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAYAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-03-05T01:11:22.768Z",
               "EditorCaption": ""
@@ -66,32 +66,33 @@
               "RelativeDocumentMoniker": "Assets\\Scripts\\IngredientSocket.cs",
               "ToolTip": "C:\\Users\\thofa\\Documents\\Thales\\Estudos_E_Trabalhos\\Projetos\\Advergame_Eventouch_Test\\Assets\\Scripts\\IngredientSocket.cs",
               "RelativeToolTip": "Assets\\Scripts\\IngredientSocket.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAQAAAAlAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAYAAAAlAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-04T04:08:25.654Z"
+              "WhenOpened": "2026-03-04T04:08:25.654Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 1,
               "Title": "GameManager.cs",
               "DocumentMoniker": "C:\\Users\\thofa\\Documents\\Thales\\Estudos_E_Trabalhos\\Projetos\\Advergame_Eventouch_Test\\Assets\\Scripts\\GameManager.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\GameManager.cs",
               "ToolTip": "C:\\Users\\thofa\\Documents\\Thales\\Estudos_E_Trabalhos\\Projetos\\Advergame_Eventouch_Test\\Assets\\Scripts\\GameManager.cs",
               "RelativeToolTip": "Assets\\Scripts\\GameManager.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAACcAAAABAAAAAAAAAA==",
+              "ViewState": "AgIAABAAAAAAAAAAAAAqwC0AAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-03-03T23:11:11.681Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 0,
               "Title": "FoodManager.cs",
               "DocumentMoniker": "C:\\Users\\thofa\\Documents\\Thales\\Estudos_E_Trabalhos\\Projetos\\Advergame_Eventouch_Test\\Assets\\Scripts\\FoodManager.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\FoodManager.cs",
               "ToolTip": "C:\\Users\\thofa\\Documents\\Thales\\Estudos_E_Trabalhos\\Projetos\\Advergame_Eventouch_Test\\Assets\\Scripts\\FoodManager.cs",
               "RelativeToolTip": "Assets\\Scripts\\FoodManager.cs",
-              "ViewState": "AgIAACUAAAAAAAAAAAAgwDcAAAAiAAAAAAAAAA==",
+              "ViewState": "AgIAAK4AAAAAAAAAAAAowMEAAAAIAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-03-04T23:20:37.601Z",
               "EditorCaption": ""
